@@ -70,21 +70,28 @@ export async function POST(req: NextRequest) {
 
   let responseMessage = "";
   if (classification === "YES") {
-    await prisma.sitterRequest.update({
-      where: { id: outreach.requestId },
+    // Atomically claim the request: only succeeds if status is still PENDING.
+    // Protects against late YES replies and blast-mode double-YES races.
+    const claim = await prisma.sitterRequest.updateMany({
+      where: { id: outreach.requestId, status: "PENDING" },
       data: { status: "FILLED", filledById: sitter.id },
     });
-    // Mark any still-queued outreaches as skipped so they aren't sent later.
-    await prisma.outreach.updateMany({
-      where: { requestId: outreach.requestId, status: "QUEUED" },
-      data: { status: "TIMEOUT" },
-    });
-    responseMessage = `Amazing — thank you! I'll confirm the details with you shortly.`;
-    void notifyBookingConfirmed({
-      sitterName: sitter.name,
-      sitterPhone: sitter.phone,
-      request: outreach.request,
-    });
+    if (claim.count === 0) {
+      // Someone else already filled this request.
+      responseMessage = `Thank you! Unfortunately another sitter beat you to it this time — we're all set for that night. I'll reach out next time!`;
+    } else {
+      // Mark any still-queued outreaches as skipped so they aren't sent later.
+      await prisma.outreach.updateMany({
+        where: { requestId: outreach.requestId, status: "QUEUED" },
+        data: { status: "TIMEOUT" },
+      });
+      responseMessage = `Amazing — thank you! I'll confirm the details with you shortly.`;
+      void notifyBookingConfirmed({
+        sitterName: sitter.name,
+        sitterPhone: sitter.phone,
+        request: outreach.request,
+      });
+    }
   } else if (classification === "NO") {
     responseMessage = `No worries, thanks for letting me know!`;
     await advanceRequest(outreach.requestId);

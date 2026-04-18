@@ -25,8 +25,11 @@ export default function NewSitterPage() {
             <input id="availability" name="availability" placeholder="e.g. prefers advance notice" />
           </div>
           <div className="field">
-            <label htmlFor="priority">Priority (lower = asked first)</label>
-            <input id="priority" name="priority" type="number" defaultValue={100} />
+            <label htmlFor="priority">Priority (1-10)</label>
+            <input id="priority" name="priority" type="number" min={1} max={10} step={1} defaultValue={5} />
+            <div className="muted" style={{ fontSize: 12 }}>
+              10 = ask first, 1 = ask last. Use the +/– buttons or type a number.
+            </div>
           </div>
           <div className="field row">
             <input id="active" name="active" type="checkbox" defaultChecked />

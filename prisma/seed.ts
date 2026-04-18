@@ -13,25 +13,25 @@ const sitters = [
     name: "Alex Chen",
     phone: "+15551110002",
     availability: "Weeknights after 6pm",
-    priority: 20,
+    priority: 8,
   },
   {
     name: "Priya Patel",
     phone: "+15551110003",
     availability: "Weekends only",
-    priority: 30,
+    priority: 7,
   },
   {
     name: "Sam O'Neill",
     phone: "+15551110004",
     availability: "Flexible, some school nights",
-    priority: 40,
+    priority: 6,
   },
   {
     name: "Morgan Lee",
     phone: "+15551110005",
     availability: "Saturdays only",
-    priority: 50,
+    priority: 5,
   },
 ];
 

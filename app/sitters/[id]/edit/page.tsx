@@ -32,8 +32,11 @@ export default async function EditSitterPage({ params }: { params: { id: string 
             <input id="availability" name="availability" defaultValue={sitter.availability} />
           </div>
           <div className="field">
-            <label htmlFor="priority">Priority (lower = asked first)</label>
-            <input id="priority" name="priority" type="number" defaultValue={sitter.priority} />
+            <label htmlFor="priority">Priority (1-10)</label>
+            <input id="priority" name="priority" type="number" min={1} max={10} step={1} defaultValue={sitter.priority} />
+            <div className="muted" style={{ fontSize: 12 }}>
+              10 = ask first, 1 = ask last. Use the +/– buttons or type a number.
+            </div>
           </div>
           <div className="field row">
             <input id="active" name="active" type="checkbox" defaultChecked={sitter.active} />
