@@ -6,73 +6,73 @@ automatically moves to the next sitter based on their reply (YES / NO / MAYBE).
 ## Stack
 
 - Next.js 14 (App Router) + TypeScript
-- Prisma + SQLite
+- Prisma + PostgreSQL
 - Twilio for SMS (send + inbound webhook)
 
-## Setup
+## Deploy to Railway (recommended, ~$5/mo)
 
-### 1. Install deps and init the DB
+Fastest path to a live URL both you and your partner can bookmark.
+
+1. **Push this repo to GitHub** (skip if it's already there).
+2. **Create a new Railway project** → "Deploy from GitHub repo" → pick the repo.
+3. **Add Postgres**: New → Database → PostgreSQL. Railway wires
+   `DATABASE_URL` into the app automatically.
+4. **Set environment variables** on the web service (see `.env.example`):
+   - `SESSION_PASSWORD` — what you'll both type to sign in
+   - `SESSION_SECRET` — a long random string:
+     `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
+   - `PUBLIC_BASE_URL` — leave blank for now, you'll fill it after Railway gives
+     you a public domain
+   - `REPLY_TIMEOUT_MINUTES` — optional, defaults to 30
+5. **Generate a public domain** on the Railway service (Settings → Networking →
+   Generate Domain). Set `PUBLIC_BASE_URL=https://<your-domain>` and redeploy.
+6. **Point Twilio at the webhook**: in the Twilio console, open your phone
+   number → Messaging Configuration → "A message comes in" →
+   `https://<your-domain>/api/twilio/inbound` (HTTP POST).
+7. **Sign in** at `https://<your-domain>/login`, add your sitters, start a
+   request.
+
+The build runs `prisma migrate deploy` automatically, so the schema is created
+on first boot. The `start` script runs both the web server and the timeout
+worker via `concurrently`.
+
+## Local development
+
+Requires Docker (for Postgres) and Node 20+.
 
 ```bash
+docker compose up -d            # starts Postgres on :5432
 npm install
 cp .env.example .env
-# edit .env — set SESSION_PASSWORD and SESSION_SECRET (see comments)
-npx prisma db push
-npm run db:seed   # optional: adds 5 fake sitters to try the UI
+# edit .env — set SESSION_PASSWORD, SESSION_SECRET, Twilio creds
+npx prisma migrate deploy
+npm run db:seed                  # optional: 5 fake sitters
+npm run dev                      # web server
+npm run worker                   # in another terminal, for timeout sweeping
 ```
 
-### 2. Get Twilio credentials
+Open <http://localhost:3000>.
 
-1. Create a Twilio account at <https://www.twilio.com>.
-2. Buy an SMS-capable phone number (~$1.15/mo).
-3. From the console, copy your Account SID and Auth Token.
-4. For a US number sending to US recipients, register for
-   [A2P 10DLC](https://www.twilio.com/docs/sms/a2p-10dlc) — otherwise your
-   messages will be filtered.
-5. Fill in `.env`:
+### Local Twilio webhook
 
-```
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_FROM_NUMBER=+15551234567
-```
-
-### 3. Expose your local server for inbound webhooks
-
-Twilio needs a public URL to POST inbound messages to. While developing:
+Twilio needs a public URL to POST replies to. Use ngrok:
 
 ```bash
 npx ngrok http 3000
 ```
 
-Then set `PUBLIC_BASE_URL=https://<subdomain>.ngrok.app` in `.env`.
+Set `PUBLIC_BASE_URL=https://<subdomain>.ngrok.app` in `.env` and point your
+Twilio number's inbound webhook at `https://<subdomain>.ngrok.app/api/twilio/inbound`.
 
-### 4. Point Twilio at the inbound webhook
+## Twilio setup
 
-In the Twilio console, open your phone number's settings. Under **Messaging
-Configuration → A MESSAGE COMES IN**, set the webhook to:
-
-```
-https://<your-public-url>/api/twilio/inbound
-```
-
-Method: `HTTP POST`.
-
-### 5. Run the app
-
-In one terminal:
-
-```bash
-npm run dev
-```
-
-In another (so timed-out sitters are skipped automatically):
-
-```bash
-npm run worker
-```
-
-Open <http://localhost:3000>.
+1. Create a Twilio account at <https://www.twilio.com>.
+2. Buy an SMS-capable phone number (~$1.15/mo).
+3. From the console, copy your Account SID and Auth Token.
+4. For a US number sending to US recipients, register for
+   [A2P 10DLC](https://www.twilio.com/docs/sms/a2p-10dlc) — otherwise carriers
+   will filter your messages.
 
 ## How it works
 
@@ -85,24 +85,13 @@ Open <http://localhost:3000>.
 5. If a sitter doesn't reply within `REPLY_TIMEOUT_MINUTES` (default 30), the
    worker times them out and texts the next sitter.
 
-## Deployment
-
-- Any Node host that supports long-running processes works (Fly.io, Railway,
-  Render). On serverless platforms, skip the worker and schedule
-  `POST /api/cron/sweep` on a 1-minute cron instead.
-- Set all env vars from `.env.example`.
-- Switch `DATABASE_URL` to Postgres for production and run `prisma migrate
-  deploy`.
-
 ## Auth
 
-The web UI is protected by a single password (`SESSION_PASSWORD`). Login sets
-a signed, HTTP-only cookie valid for 30 days. Middleware redirects unauthed
-traffic to `/login`, except for `/api/twilio/*` (Twilio needs to POST there)
-and `/api/cron/*` (so an external scheduler can hit the sweep endpoint).
-
-For multi-user auth, swap the middleware + login action for your preferred
-provider (NextAuth, Clerk, etc).
+The web UI is protected by a single password (`SESSION_PASSWORD`) — you and
+your partner share it. Login sets a signed, HTTP-only cookie valid for 30
+days. Middleware redirects unauthed traffic to `/login`, except for
+`/api/twilio/*` (Twilio needs to POST there) and `/api/cron/*` (for external
+schedulers).
 
 ## Security notes
 
@@ -111,5 +100,5 @@ provider (NextAuth, Clerk, etc).
 - The `/api/twilio/inbound` route validates Twilio's signature using your auth
   token and `PUBLIC_BASE_URL`. Disable with `VALIDATE_TWILIO_SIGNATURE=false`
   only for local testing.
-- Sitter phone numbers are stored unencrypted in SQLite. Put it behind HTTPS
-  when deploying publicly.
+- Sitter phone numbers are stored unencrypted in Postgres. Always deploy
+  behind HTTPS (Railway provides this automatically).
