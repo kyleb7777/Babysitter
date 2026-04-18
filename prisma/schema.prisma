@@ -22,7 +22,9 @@ model Sitter {
 model SitterRequest {
   id          String     @id @default(cuid())
   date        String     // ISO date e.g. 2026-05-02
-  timeWindow  String     // e.g. "6-10pm"
+  timeWindow  String     // display label, e.g. "6-10pm" (computed from start/end)
+  startTime   String?    // HH:MM local time, e.g. "18:00"
+  endTime     String?    // HH:MM local time, e.g. "22:00"
   notes       String?
   status      String     @default("PENDING") // PENDING | FILLED | EXHAUSTED | CANCELLED
   filledById  String?
