@@ -32,6 +32,7 @@ export default async function SittersPage() {
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Availability</th>
+                <th>Rate</th>
                 <th>Priority</th>
                 <th>Status</th>
                 <th />
@@ -50,6 +51,7 @@ export default async function SittersPage() {
                       <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{s.availability}</div>
                     )}
                   </td>
+                  <td>{s.rate || <span className="muted">—</span>}</td>
                   <td>{s.priority}</td>
                   <td>
                     <span className={`badge badge-${s.active ? "YES" : "NO"}`}>

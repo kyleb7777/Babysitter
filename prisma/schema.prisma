@@ -14,6 +14,7 @@ model Sitter {
   availability       String     // free-form notes, e.g. "Fri/Sat evenings"
   weeklyAvailability Json?      // structured per-day availability; see lib/availability.ts
   priority           Int        @default(5) // 1-10, higher = asked first
+  rate               String?    // free-form, e.g. "$25/hr"
   active             Boolean    @default(true)
   createdAt          DateTime   @default(now())
   outreaches         Outreach[]

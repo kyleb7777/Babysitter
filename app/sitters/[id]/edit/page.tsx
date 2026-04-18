@@ -28,6 +28,10 @@ export default async function EditSitterPage({ params }: { params: { id: string 
             <AvailabilityFields value={sitter.weeklyAvailability as WeeklyAvailability | null} />
           </div>
           <div className="field">
+            <label htmlFor="rate">Rate (optional)</label>
+            <input id="rate" name="rate" placeholder="$25/hr" defaultValue={sitter.rate ?? ""} />
+          </div>
+          <div className="field">
             <label htmlFor="availability">Notes (optional)</label>
             <input id="availability" name="availability" defaultValue={sitter.availability} />
           </div>

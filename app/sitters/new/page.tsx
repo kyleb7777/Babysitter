@@ -21,6 +21,10 @@ export default function NewSitterPage() {
             <AvailabilityFields />
           </div>
           <div className="field">
+            <label htmlFor="rate">Rate (optional)</label>
+            <input id="rate" name="rate" placeholder="$25/hr" />
+          </div>
+          <div className="field">
             <label htmlFor="availability">Notes (optional)</label>
             <input id="availability" name="availability" placeholder="e.g. prefers advance notice" />
           </div>
