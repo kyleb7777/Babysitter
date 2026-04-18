@@ -89,3 +89,8 @@ a { color: inherit; text-decoration: none; }
 .availRow .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
 .availRow input[type="time"] { padding: 6px 8px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: white; font-family: inherit; }
 .availRow .toLabel { color: var(--muted); font-size: 13px; }
+
+.sitterPickGrid { display: grid; gap: 4px; }
+.sitterPickHead { display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 4px 8px; font-weight: 600; }
+.sitterPickRow { display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+.sitterPickRow input[type="checkbox"] { justify-self: center; }

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SittersPage() {
   const sitters = await prisma.sitter.findMany({
-    orderBy: [{ active: "desc" }, { priority: "asc" }, { name: "asc" }],
+    orderBy: [{ active: "desc" }, { priority: "desc" }, { name: "asc" }],
   });
 
   return (

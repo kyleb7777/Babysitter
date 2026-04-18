@@ -17,7 +17,8 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
   });
   if (!r) notFound();
 
-  const current = r.outreaches.find((o) => o.status === "SENT");
+  const inFlight = r.outreaches.filter((o) => o.status === "SENT");
+  const current = inFlight[0];
 
   return (
     <>
@@ -36,6 +37,10 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
           <div>
             <div className="muted">Time</div>
             <div style={{ fontWeight: 600 }}>{r.timeWindow}</div>
+          </div>
+          <div>
+            <div className="muted">Wait per sitter</div>
+            <div style={{ fontWeight: 600 }}>{r.timeoutMinutes} min</div>
           </div>
           <div>
             <div className="muted">Status</div>
@@ -57,6 +62,19 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
             </form>
           )}
         </div>
+        {inFlight.length > 0 && r.status === "PENDING" && (
+          <p className="muted" style={{ marginTop: 12 }}>
+            Waiting on{" "}
+            <strong>{inFlight.map((o) => o.sitter.name).join(", ")}</strong>
+            {inFlight[0].sentAt && (
+              <> — next asked at{" "}
+                {new Date(
+                  inFlight[0].sentAt.getTime() + r.timeoutMinutes * 60 * 1000,
+                ).toLocaleTimeString()} if no reply</>
+            )}
+            .
+          </p>
+        )}
         {r.notes && (
           <p className="muted" style={{ marginTop: 12 }}>Notes: {r.notes}</p>
         )}

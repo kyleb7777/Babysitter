@@ -11,7 +11,7 @@ const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   phone: z.string().trim().min(1, "Phone is required"),
   availability: z.string().trim().default(""),
-  priority: z.coerce.number().int().default(100),
+  priority: z.coerce.number().int().min(1).max(10).default(5),
   active: z.coerce.boolean().default(true),
 });
 
@@ -20,7 +20,7 @@ export async function createSitter(formData: FormData) {
     name: formData.get("name"),
     phone: formData.get("phone"),
     availability: formData.get("availability") ?? "",
-    priority: formData.get("priority") ?? 100,
+    priority: formData.get("priority") ?? 5,
     active: formData.get("active") === "on",
   });
   const phone = normalizePhone(parsed.phone);
@@ -36,7 +36,7 @@ export async function updateSitter(formData: FormData) {
     name: formData.get("name"),
     phone: formData.get("phone"),
     availability: formData.get("availability") ?? "",
-    priority: formData.get("priority") ?? 100,
+    priority: formData.get("priority") ?? 5,
     active: formData.get("active") === "on",
   });
   const phone = normalizePhone(parsed.phone);

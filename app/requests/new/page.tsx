@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function NewRequestPage() {
   const sitters = await prisma.sitter.findMany({
     where: { active: true },
-    orderBy: [{ priority: "asc" }, { name: "asc" }],
+    orderBy: [{ priority: "desc" }, { name: "asc" }],
   });
 
   return (
@@ -24,6 +24,13 @@ export default async function NewRequestPage() {
         </div>
       ) : (
         <div className="card">
+          <div className="muted" style={{ fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+            <strong>How this works:</strong> sitters are asked one at a time in
+            priority order. Each gets the wait time below to reply before we
+            move to the next. First YES wins. For last-minute needs, check{" "}
+            <strong>Ask now</strong> on multiple sitters to text them all at
+            once.
+          </div>
           <form action={createRequest} className="form">
             <div className="field">
               <label htmlFor="date">Date</label>
@@ -38,6 +45,10 @@ export default async function NewRequestPage() {
                 <label htmlFor="endTime">End time</label>
                 <input id="endTime" name="endTime" type="time" required defaultValue="22:00" />
               </div>
+              <div className="field" style={{ flex: 1 }}>
+                <label htmlFor="timeoutMinutes">Wait (min)</label>
+                <input id="timeoutMinutes" name="timeoutMinutes" type="number" min={1} step={1} defaultValue={30} required />
+              </div>
             </div>
             <div className="field">
               <label htmlFor="notes">Extra notes (optional)</label>
@@ -49,18 +60,30 @@ export default async function NewRequestPage() {
               />
             </div>
             <div className="field">
-              <label>Sitters to ask (in order)</label>
-              <div style={{ display: "grid", gap: 6 }}>
+              <label>Sitters to ask (in priority order)</label>
+              <div className="sitterPickGrid">
+                <div className="sitterPickHead">
+                  <span>Include</span>
+                  <span>Ask now</span>
+                  <span>Sitter</span>
+                </div>
                 {sitters.map((s) => {
                   const weekly = formatWeekly(s.weeklyAvailability);
                   const detail = [weekly, s.availability].filter(Boolean).join(" · ") || "no availability set";
                   return (
-                    <label key={s.id} className="row" style={{ gap: 8 }}>
+                    <div key={s.id} className="sitterPickRow">
                       <input
                         type="checkbox"
                         name="sitterIds"
                         value={s.id}
                         defaultChecked
+                        aria-label={`Include ${s.name}`}
+                      />
+                      <input
+                        type="checkbox"
+                        name="immediateSitterIds"
+                        value={s.id}
+                        aria-label={`Ask ${s.name} immediately`}
                       />
                       <span>
                         <strong>{s.name}</strong>{" "}
@@ -68,12 +91,13 @@ export default async function NewRequestPage() {
                           — {detail} · priority {s.priority}
                         </span>
                       </span>
-                    </label>
+                    </div>
                   );
                 })}
               </div>
               <div className="muted" style={{ fontSize: 12 }}>
-                Order follows sitter priority. Edit a sitter's priority to reorder.
+                Check <strong>Ask now</strong> on sitters you want to text
+                simultaneously. Unchecked sitters wait in the queue.
               </div>
             </div>
             <div className="row">

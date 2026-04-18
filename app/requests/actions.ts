@@ -4,25 +4,30 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
-import { advanceRequest, sweepTimeouts } from "@/lib/outreach";
+import { advanceRequest, blastOutreaches, sweepTimeouts } from "@/lib/outreach";
 import { formatTimeWindow } from "@/lib/calendar";
 
 const schema = z.object({
   date: z.string().trim().min(1, "Date is required"),
   startTime: z.string().trim().regex(/^\d{2}:\d{2}$/, "Start time is required"),
   endTime: z.string().trim().regex(/^\d{2}:\d{2}$/, "End time is required"),
+  timeoutMinutes: z.coerce.number().int().min(1).max(24 * 60).default(30),
   notes: z.string().trim().optional().nullable(),
   sitterIds: z.array(z.string()).min(1, "Pick at least one sitter"),
+  immediateSitterIds: z.array(z.string()).default([]),
 });
 
 export async function createRequest(formData: FormData) {
   const sitterIds = formData.getAll("sitterIds").map(String);
+  const immediateSitterIds = formData.getAll("immediateSitterIds").map(String);
   const parsed = schema.parse({
     date: formData.get("date"),
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
+    timeoutMinutes: formData.get("timeoutMinutes") ?? 30,
     notes: formData.get("notes") || null,
     sitterIds,
+    immediateSitterIds,
   });
   const timeWindow = formatTimeWindow(parsed.startTime, parsed.endTime);
 
@@ -39,12 +44,18 @@ export async function createRequest(formData: FormData) {
     throw new Error("No active sitters selected.");
   }
 
+  const includedIds = new Set(ordered.map((s) => s.id));
+  const immediateSet = new Set(
+    parsed.immediateSitterIds.filter((id) => includedIds.has(id)),
+  );
+
   const request = await prisma.sitterRequest.create({
     data: {
       date: parsed.date,
       timeWindow,
       startTime: parsed.startTime,
       endTime: parsed.endTime,
+      timeoutMinutes: parsed.timeoutMinutes,
       notes: parsed.notes ?? null,
       outreaches: {
         create: ordered.map((s, i) => ({
@@ -54,9 +65,21 @@ export async function createRequest(formData: FormData) {
         })),
       },
     },
+    include: { outreaches: true },
   });
 
-  await advanceRequest(request.id);
+  if (immediateSet.size > 0) {
+    const immediateOutreachIds = request.outreaches
+      .filter((o) => immediateSet.has(o.sitterId))
+      .map((o) => o.id);
+    const { allFailed } = await blastOutreaches(immediateOutreachIds);
+    // If every immediate send failed, fall back to the regular waterfall so
+    // the request still progresses.
+    if (allFailed) await advanceRequest(request.id);
+  } else {
+    await advanceRequest(request.id);
+  }
+
   revalidatePath("/requests");
   redirect(`/requests/${request.id}`);
 }
