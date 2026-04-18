@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { createRequest } from "../actions";
 import { formatWeekly } from "@/lib/availability";
 import { SitterOrderList, type SitterRow } from "./SitterOrderList";
+import { CalendarPanel } from "./CalendarPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,7 @@ export default async function NewRequestPage() {
             <div className="field">
               <label htmlFor="date">Date</label>
               <input id="date" name="date" type="date" required />
+              <CalendarPanel dateInputId="date" />
             </div>
             <div className="row" style={{ gap: 12 }}>
               <div className="field" style={{ flex: 1 }}>
