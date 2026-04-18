@@ -84,6 +84,13 @@ export async function createRequest(formData: FormData) {
   redirect(`/requests/${request.id}`);
 }
 
+export async function deleteRequest(formData: FormData) {
+  const id = String(formData.get("id"));
+  await prisma.sitterRequest.delete({ where: { id } });
+  revalidatePath("/requests");
+  redirect("/requests");
+}
+
 export async function cancelRequest(formData: FormData) {
   const id = String(formData.get("id"));
   await prisma.sitterRequest.update({

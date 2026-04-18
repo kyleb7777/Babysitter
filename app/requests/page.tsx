@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { sweep } from "./actions";
+import { deleteRequest, sweep } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +72,11 @@ export default async function RequestsPage() {
                     </td>
                     <td>{filledBy ? filledBy.sitter.name : "—"}</td>
                     <td style={{ textAlign: "right" }}>
-                      <Link href={`/requests/${r.id}`} className="btn">View</Link>
+                      <Link href={`/requests/${r.id}`} className="btn">View</Link>{" "}
+                      <form action={deleteRequest} style={{ display: "inline" }}>
+                        <input type="hidden" name="id" value={r.id} />
+                        <button className="btn btnDanger" type="submit">Delete</button>
+                      </form>
                     </td>
                   </tr>
                 );
