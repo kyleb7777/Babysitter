@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { deleteSitter } from "./actions";
+import { formatWeekly } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -37,11 +38,18 @@ export default async function SittersPage() {
               </tr>
             </thead>
             <tbody>
-              {sitters.map((s) => (
+              {sitters.map((s) => {
+                const weekly = formatWeekly(s.weeklyAvailability);
+                return (
                 <tr key={s.id}>
                   <td>{s.name}</td>
                   <td>{s.phone}</td>
-                  <td>{s.availability}</td>
+                  <td>
+                    {weekly || <span className="muted">—</span>}
+                    {s.availability && (
+                      <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{s.availability}</div>
+                    )}
+                  </td>
                   <td>{s.priority}</td>
                   <td>
                     <span className={`badge badge-${s.active ? "YES" : "NO"}`}>
@@ -56,7 +64,8 @@ export default async function SittersPage() {
                     </form>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

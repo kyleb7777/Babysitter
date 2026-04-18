@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Sitter {
-  id           String     @id @default(cuid())
-  name         String
-  phone        String     @unique
-  availability String     // free-form, e.g. "Fri/Sat evenings"
-  priority     Int        @default(100) // lower = asked first
-  active       Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  outreaches   Outreach[]
+  id                 String     @id @default(cuid())
+  name               String
+  phone              String     @unique
+  availability       String     // free-form notes, e.g. "Fri/Sat evenings"
+  weeklyAvailability Json?      // structured per-day availability; see lib/availability.ts
+  priority           Int        @default(100) // lower = asked first
+  active             Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  outreaches         Outreach[]
 }
 
 model SitterRequest {

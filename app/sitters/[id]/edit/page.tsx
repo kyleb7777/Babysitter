@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { updateSitter } from "../../actions";
+import { AvailabilityFields } from "../../AvailabilityFields";
+import type { WeeklyAvailability } from "@/lib/availability";
 
 export default async function EditSitterPage({ params }: { params: { id: string } }) {
   const sitter = await prisma.sitter.findUnique({ where: { id: params.id } });
@@ -22,7 +24,11 @@ export default async function EditSitterPage({ params }: { params: { id: string 
             <input id="phone" name="phone" required defaultValue={sitter.phone} />
           </div>
           <div className="field">
-            <label htmlFor="availability">General availability</label>
+            <label>Weekly availability</label>
+            <AvailabilityFields value={sitter.weeklyAvailability as WeeklyAvailability | null} />
+          </div>
+          <div className="field">
+            <label htmlFor="availability">Notes (optional)</label>
             <input id="availability" name="availability" defaultValue={sitter.availability} />
           </div>
           <div className="field">
