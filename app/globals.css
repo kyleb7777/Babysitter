@@ -154,3 +154,9 @@ input[type="checkbox"] { accent-color: var(--primary); }
 
 .statGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px 20px; }
 .statGrid > div > .muted { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+
+.calendarPanel { margin-top: 8px; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 12px 14px; background: var(--bg-subtle); display: grid; gap: 8px; }
+.calendarPanelHead { display: flex; justify-content: space-between; align-items: center; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+.calendarEvent { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: start; font-size: 13px; }
+.calendarEventTime { color: var(--muted); font-variant-numeric: tabular-nums; }
+.calendarEventTitle { font-weight: 500; }
