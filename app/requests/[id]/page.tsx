@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { cancelRequest, retryRequest, skipCurrent } from "../actions";
+import { cancelRequest, deleteRequest, retryRequest, skipCurrent } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +61,10 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
               <button className="btn btnDanger" type="submit">Cancel request</button>
             </form>
           )}
+          <form action={deleteRequest}>
+            <input type="hidden" name="id" value={r.id} />
+            <button className="btn btnDanger" type="submit">Delete</button>
+          </form>
         </div>
         {inFlight.length > 0 && r.status === "PENDING" && (
           <p className="muted" style={{ marginTop: 12 }}>
