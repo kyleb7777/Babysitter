@@ -5,10 +5,12 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { advanceRequest, sweepTimeouts } from "@/lib/outreach";
+import { formatTimeWindow } from "@/lib/calendar";
 
 const schema = z.object({
   date: z.string().trim().min(1, "Date is required"),
-  timeWindow: z.string().trim().min(1, "Time window is required"),
+  startTime: z.string().trim().regex(/^\d{2}:\d{2}$/, "Start time is required"),
+  endTime: z.string().trim().regex(/^\d{2}:\d{2}$/, "End time is required"),
   notes: z.string().trim().optional().nullable(),
   sitterIds: z.array(z.string()).min(1, "Pick at least one sitter"),
 });
@@ -17,10 +19,12 @@ export async function createRequest(formData: FormData) {
   const sitterIds = formData.getAll("sitterIds").map(String);
   const parsed = schema.parse({
     date: formData.get("date"),
-    timeWindow: formData.get("timeWindow"),
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
     notes: formData.get("notes") || null,
     sitterIds,
   });
+  const timeWindow = formatTimeWindow(parsed.startTime, parsed.endTime);
 
   // Keep the checkbox order (which mirrors priority) so outreach.order is stable.
   const sitters = await prisma.sitter.findMany({
@@ -38,7 +42,9 @@ export async function createRequest(formData: FormData) {
   const request = await prisma.sitterRequest.create({
     data: {
       date: parsed.date,
-      timeWindow: parsed.timeWindow,
+      timeWindow,
+      startTime: parsed.startTime,
+      endTime: parsed.endTime,
       notes: parsed.notes ?? null,
       outreaches: {
         create: ordered.map((s, i) => ({

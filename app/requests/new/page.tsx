@@ -29,14 +29,15 @@ export default async function NewRequestPage() {
               <label htmlFor="date">Date</label>
               <input id="date" name="date" type="date" required />
             </div>
-            <div className="field">
-              <label htmlFor="timeWindow">Time window</label>
-              <input
-                id="timeWindow"
-                name="timeWindow"
-                required
-                placeholder="6-10pm"
-              />
+            <div className="row" style={{ gap: 12 }}>
+              <div className="field" style={{ flex: 1 }}>
+                <label htmlFor="startTime">Start time</label>
+                <input id="startTime" name="startTime" type="time" required defaultValue="18:00" />
+              </div>
+              <div className="field" style={{ flex: 1 }}>
+                <label htmlFor="endTime">End time</label>
+                <input id="endTime" name="endTime" type="time" required defaultValue="22:00" />
+              </div>
             </div>
             <div className="field">
               <label htmlFor="notes">Extra notes (optional)</label>
