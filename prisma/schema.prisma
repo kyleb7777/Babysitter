@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Sitter {
+  id           String     @id @default(cuid())
+  name         String
+  phone        String     @unique
+  availability String     // free-form, e.g. "Fri/Sat evenings"
+  priority     Int        @default(100) // lower = asked first
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  outreaches   Outreach[]
+}
+
+model SitterRequest {
+  id          String     @id @default(cuid())
+  date        String     // ISO date e.g. 2026-05-02
+  timeWindow  String     // e.g. "6-10pm"
+  notes       String?
+  status      String     @default("PENDING") // PENDING | FILLED | EXHAUSTED | CANCELLED
+  filledById  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  outreaches  Outreach[]
+}
+
+model Outreach {
+  id          String        @id @default(cuid())
+  requestId   String
+  sitterId    String
+  status      String        @default("QUEUED") // QUEUED | SENT | YES | NO | MAYBE | TIMEOUT | ERROR
+  sentAt      DateTime?
+  repliedAt   DateTime?
+  replyBody   String?
+  errorText   String?
+  order       Int
+  request     SitterRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  sitter      Sitter        @relation(fields: [sitterId], references: [id])
+
+  @@unique([requestId, sitterId])
+  @@index([requestId, order])
+}
