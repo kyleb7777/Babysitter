@@ -17,6 +17,17 @@ function statusBadge(status: string) {
   return "PENDING";
 }
 
+function a2pBadge(status: string) {
+  const s = status.toUpperCase();
+  if (["APPROVED", "VERIFIED", "REGISTERED"].includes(s)) return "FILLED";
+  if (["FAILED", "REJECTED", "SUSPENDED"].includes(s)) return "ERROR";
+  if (
+    ["IN_REVIEW", "IN_PROGRESS", "PENDING", "PENDING_REVIEW"].includes(s)
+  )
+    return "MAYBE";
+  return "PENDING";
+}
+
 export default async function StatusPage() {
   const s = await fetchTwilioStatus();
 
@@ -127,6 +138,125 @@ export default async function StatusPage() {
           )
         ) : (
           <div className="muted">Not available.</div>
+        )}
+      </div>
+
+      <div className="card">
+        <h2 className="h2">A2P 10DLC registration</h2>
+        {s.a2pError ? (
+          <div className="muted">Could not fetch A2P data: {s.a2pError}</div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 12, fontSize: 13 }} className="muted">
+              Required for US SMS delivery from 10-digit numbers. Must be
+              approved before outbound texts will be delivered by carriers.
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                Brands
+              </div>
+              {s.brands && s.brands.length > 0 ? (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {s.brands.map((b) => (
+                    <div
+                      key={b.sid}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 1fr auto",
+                        gap: 10,
+                        alignItems: "center",
+                        padding: "8px 10px",
+                        border: "1px solid var(--border)",
+                        borderRadius: 10,
+                        background: "var(--bg-subtle)",
+                      }}
+                    >
+                      <span className={`badge badge-${a2pBadge(b.status)}`}>
+                        {b.status}
+                      </span>
+                      <span style={{ fontSize: 13 }}>
+                        {b.brandType || "Brand"}
+                        {b.failureReason && (
+                          <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+                            {b.failureReason}
+                          </div>
+                        )}
+                      </span>
+                      <span
+                        className="muted"
+                        style={{
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                          fontSize: 12,
+                        }}
+                      >
+                        {b.sid.slice(0, 10)}…
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="muted">No brand registered.</div>
+              )}
+            </div>
+            <div>
+              <div className="muted" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+                Campaigns
+              </div>
+              {s.campaigns && s.campaigns.length > 0 ? (
+                <div style={{ display: "grid", gap: 6 }}>
+                  {s.campaigns.map((c) => (
+                    <div
+                      key={c.sid}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 1fr auto",
+                        gap: 10,
+                        alignItems: "center",
+                        padding: "8px 10px",
+                        border: "1px solid var(--border)",
+                        borderRadius: 10,
+                        background: "var(--bg-subtle)",
+                      }}
+                    >
+                      <span className={`badge badge-${a2pBadge(c.status)}`}>
+                        {c.status}
+                      </span>
+                      <span style={{ fontSize: 13 }}>
+                        {c.useCase || "Campaign"}
+                        {c.description && (
+                          <div
+                            className="muted"
+                            style={{
+                              fontSize: 12,
+                              marginTop: 2,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                            }}
+                          >
+                            {c.description}
+                          </div>
+                        )}
+                      </span>
+                      <span
+                        className="muted"
+                        style={{
+                          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                          fontSize: 12,
+                        }}
+                      >
+                        {c.sid.slice(0, 10)}…
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="muted">No campaign registered.</div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
