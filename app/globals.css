@@ -160,3 +160,15 @@ input[type="checkbox"] { accent-color: var(--primary); }
 .calendarEvent { display: grid; grid-template-columns: 120px 1fr; gap: 10px; align-items: start; font-size: 13px; }
 .calendarEventTime { color: var(--muted); font-variant-numeric: tabular-nums; }
 .calendarEventTitle { font-weight: 500; }
+
+.eventRow { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-subtle); }
+.eventRow:hover { background: #fff; }
+.eventMeta { display: grid; gap: 2px; }
+.eventTime { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.eventTitle { font-weight: 600; font-size: 15px; }
+.eventStatus { display: flex; align-items: center; }
+.eventActions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 640px) {
+  .eventRow { grid-template-columns: 1fr; gap: 8px; }
+  .eventActions { justify-content: flex-start; }
+}

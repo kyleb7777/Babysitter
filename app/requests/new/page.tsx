@@ -7,7 +7,17 @@ import { CalendarPanel } from "./CalendarPanel";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewRequestPage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+function asString(v: string | string[] | undefined): string | undefined {
+  if (Array.isArray(v)) return v[0];
+  return v;
+}
+
+export default async function NewRequestPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const sitters = await prisma.sitter.findMany({
     where: { active: true },
     orderBy: [{ priority: "desc" }, { name: "asc" }],
@@ -18,6 +28,19 @@ export default async function NewRequestPage() {
       [weekly, s.availability].filter(Boolean).join(" · ") || "no availability set";
     return { id: s.id, name: s.name, detail, priority: s.priority };
   });
+
+  const presetDate = asString(searchParams.date) ?? "";
+  const presetStart =
+    asString(searchParams.startTime)?.match(/^\d{2}:\d{2}$/)
+      ? asString(searchParams.startTime)!
+      : "18:00";
+  const presetEnd =
+    asString(searchParams.endTime)?.match(/^\d{2}:\d{2}$/)
+      ? asString(searchParams.endTime)!
+      : "22:00";
+  const presetTitle = asString(searchParams.title) ?? "";
+  const presetEventUid = asString(searchParams.eventUid) ?? "";
+  const presetNotes = presetTitle ? `For: ${presetTitle}` : "";
 
   return (
     <>
@@ -32,6 +55,11 @@ export default async function NewRequestPage() {
         </div>
       ) : (
         <div className="card">
+          {presetTitle && (
+            <div className="ok" style={{ marginBottom: 16 }}>
+              Creating a request for <strong>{presetTitle}</strong>.
+            </div>
+          )}
           <div className="muted" style={{ fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
             <strong>How this works:</strong> sitters are asked one at a time in
             priority order. Each gets the wait time below to reply before we
@@ -40,19 +68,28 @@ export default async function NewRequestPage() {
             once.
           </div>
           <form action={createRequest} className="form">
+            {presetEventUid && (
+              <input type="hidden" name="calendarEventUid" value={presetEventUid} />
+            )}
             <div className="field">
               <label htmlFor="date">Date</label>
-              <input id="date" name="date" type="date" required />
+              <input
+                id="date"
+                name="date"
+                type="date"
+                required
+                defaultValue={presetDate}
+              />
               <CalendarPanel dateInputId="date" />
             </div>
             <div className="row" style={{ gap: 12 }}>
               <div className="field" style={{ flex: 1 }}>
                 <label htmlFor="startTime">Start time</label>
-                <input id="startTime" name="startTime" type="time" required defaultValue="18:00" />
+                <input id="startTime" name="startTime" type="time" required defaultValue={presetStart} />
               </div>
               <div className="field" style={{ flex: 1 }}>
                 <label htmlFor="endTime">End time</label>
-                <input id="endTime" name="endTime" type="time" required defaultValue="22:00" />
+                <input id="endTime" name="endTime" type="time" required defaultValue={presetEnd} />
               </div>
               <div className="field" style={{ flex: 1 }}>
                 <label htmlFor="timeoutMinutes">Wait (min)</label>
@@ -66,6 +103,7 @@ export default async function NewRequestPage() {
                 name="notes"
                 rows={2}
                 placeholder="Two kids, ages 4 and 7. Pay is $25/hr."
+                defaultValue={presetNotes}
               />
             </div>
             <div className="field">
