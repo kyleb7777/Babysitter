@@ -51,8 +51,8 @@ a { color: inherit; text-decoration: none; }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 19px; letter-spacing: -0.02em; }
 .brandIcon { color: var(--primary); display: inline-flex; }
 .nav { display: flex; gap: 18px; align-items: center; }
-.nav a { color: var(--muted); font-size: 14px; font-weight: 500; transition: color 120ms ease; }
-.nav a:hover { color: var(--fg); }
+.nav a:not(.btn) { color: var(--muted); font-size: 14px; font-weight: 500; transition: color 120ms ease; }
+.nav a:not(.btn):hover { color: var(--fg); }
 .main { padding: 36px 20px 64px; }
 
 .card {
