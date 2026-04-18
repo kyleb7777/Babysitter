@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { createRequest } from "../actions";
+import { formatWeekly } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -49,22 +50,26 @@ export default async function NewRequestPage() {
             <div className="field">
               <label>Sitters to ask (in order)</label>
               <div style={{ display: "grid", gap: 6 }}>
-                {sitters.map((s) => (
-                  <label key={s.id} className="row" style={{ gap: 8 }}>
-                    <input
-                      type="checkbox"
-                      name="sitterIds"
-                      value={s.id}
-                      defaultChecked
-                    />
-                    <span>
-                      <strong>{s.name}</strong>{" "}
-                      <span className="muted">
-                        — {s.availability || "no availability set"} · priority {s.priority}
+                {sitters.map((s) => {
+                  const weekly = formatWeekly(s.weeklyAvailability);
+                  const detail = [weekly, s.availability].filter(Boolean).join(" · ") || "no availability set";
+                  return (
+                    <label key={s.id} className="row" style={{ gap: 8 }}>
+                      <input
+                        type="checkbox"
+                        name="sitterIds"
+                        value={s.id}
+                        defaultChecked
+                      />
+                      <span>
+                        <strong>{s.name}</strong>{" "}
+                        <span className="muted">
+                          — {detail} · priority {s.priority}
+                        </span>
                       </span>
-                    </span>
-                  </label>
-                ))}
+                    </label>
+                  );
+                })}
               </div>
               <div className="muted" style={{ fontSize: 12 }}>
                 Order follows sitter priority. Edit a sitter's priority to reorder.

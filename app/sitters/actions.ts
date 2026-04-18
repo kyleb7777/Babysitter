@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { normalizePhone } from "@/lib/twilio";
+import { parseWeeklyFromFormData } from "@/lib/availability";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -23,7 +24,8 @@ export async function createSitter(formData: FormData) {
     active: formData.get("active") === "on",
   });
   const phone = normalizePhone(parsed.phone);
-  await prisma.sitter.create({ data: { ...parsed, phone } });
+  const weeklyAvailability = parseWeeklyFromFormData(formData);
+  await prisma.sitter.create({ data: { ...parsed, phone, weeklyAvailability } });
   revalidatePath("/sitters");
   redirect("/sitters");
 }
@@ -38,7 +40,8 @@ export async function updateSitter(formData: FormData) {
     active: formData.get("active") === "on",
   });
   const phone = normalizePhone(parsed.phone);
-  await prisma.sitter.update({ where: { id }, data: { ...parsed, phone } });
+  const weeklyAvailability = parseWeeklyFromFormData(formData);
+  await prisma.sitter.update({ where: { id }, data: { ...parsed, phone, weeklyAvailability } });
   revalidatePath("/sitters");
   redirect("/sitters");
 }

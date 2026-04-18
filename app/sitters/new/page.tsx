@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createSitter } from "../actions";
+import { AvailabilityFields } from "../AvailabilityFields";
 
 export default function NewSitterPage() {
   return (
@@ -16,8 +17,12 @@ export default function NewSitterPage() {
             <input id="phone" name="phone" required placeholder="555-123-4567" />
           </div>
           <div className="field">
-            <label htmlFor="availability">General availability</label>
-            <input id="availability" name="availability" placeholder="Fri/Sat evenings" />
+            <label>Weekly availability</label>
+            <AvailabilityFields />
+          </div>
+          <div className="field">
+            <label htmlFor="availability">Notes (optional)</label>
+            <input id="availability" name="availability" placeholder="e.g. prefers advance notice" />
           </div>
           <div className="field">
             <label htmlFor="priority">Priority (lower = asked first)</label>
