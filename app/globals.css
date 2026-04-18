@@ -151,3 +151,6 @@ a { color: inherit; text-decoration: none; }
 .dragHandle:active { cursor: grabbing; }
 
 input[type="checkbox"] { accent-color: var(--primary); }
+
+.statGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px 20px; }
+.statGrid > div > .muted { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
