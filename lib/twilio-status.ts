@@ -30,6 +30,25 @@ export type TwilioMessageRow = {
   dateCreated: Date | null;
 };
 
+export type TwilioBrandRow = {
+  sid: string;
+  friendlyName: string | null;
+  brandType: string | null;
+  status: string;
+  failureReason: string | null;
+  dateCreated: Date | null;
+};
+
+export type TwilioCampaignRow = {
+  sid: string;
+  serviceSid: string;
+  brandSid: string | null;
+  useCase: string | null;
+  status: string;
+  description: string | null;
+  dateCreated: Date | null;
+};
+
 export type TwilioStatus = {
   ok: boolean;
   error?: string;
@@ -37,6 +56,9 @@ export type TwilioStatus = {
   account?: TwilioAccountStatus;
   phone?: TwilioNumberStatus;
   messages?: TwilioMessageRow[];
+  brands?: TwilioBrandRow[];
+  campaigns?: TwilioCampaignRow[];
+  a2pError?: string;
 };
 
 export async function fetchTwilioStatus(): Promise<TwilioStatus> {
@@ -81,6 +103,48 @@ export async function fetchTwilioStatus(): Promise<TwilioStatus> {
           dateCreated: null,
           notFound: true,
         };
+    // A2P 10DLC: brands + campaigns across all messaging services. These
+    // endpoints can throw on fresh accounts without any brand yet, so we
+    // isolate failures and surface them without breaking the rest.
+    let brands: TwilioBrandRow[] | undefined;
+    let campaigns: TwilioCampaignRow[] | undefined;
+    let a2pError: string | undefined;
+    try {
+      const brandList = await client.messaging.v1.brandRegistrations.list({ limit: 20 });
+      brands = brandList.map((b) => ({
+        sid: b.sid,
+        friendlyName: b.brandFeedback?.toString() ?? null,
+        brandType: (b as unknown as { brandType?: string }).brandType ?? null,
+        status: b.status,
+        failureReason: b.failureReason ?? null,
+        dateCreated: b.dateCreated ?? null,
+      }));
+      const services = await client.messaging.v1.services.list({ limit: 20 });
+      const campaignResults = await Promise.all(
+        services.map(async (svc) => {
+          try {
+            const list = await client.messaging.v1
+              .services(svc.sid)
+              .usAppToPerson.list({ limit: 20 });
+            return list.map<TwilioCampaignRow>((c) => ({
+              sid: c.sid,
+              serviceSid: svc.sid,
+              brandSid: (c as unknown as { brandRegistrationSid?: string }).brandRegistrationSid ?? null,
+              useCase: (c as unknown as { usAppToPersonUsecase?: string }).usAppToPersonUsecase ?? null,
+              status: (c as unknown as { campaignStatus?: string }).campaignStatus ?? "UNKNOWN",
+              description: c.description ?? null,
+              dateCreated: c.dateCreated ?? null,
+            }));
+          } catch {
+            return [];
+          }
+        }),
+      );
+      campaigns = campaignResults.flat();
+    } catch (err) {
+      a2pError = err instanceof Error ? err.message : String(err);
+    }
+
     return {
       ok: true,
       fromNumber: from,
@@ -101,6 +165,9 @@ export async function fetchTwilioStatus(): Promise<TwilioStatus> {
         body: m.body ?? null,
         dateCreated: m.dateCreated ?? null,
       })),
+      brands,
+      campaigns,
+      a2pError,
     };
   } catch (err) {
     return {
