@@ -60,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/sitters">Sitters</Link>
                   <Link href="/requests">Requests</Link>
                   <Link href="/status">Status</Link>
+                  <Link href="/settings">Settings</Link>
                   <Link href="/requests/new" className="btn btnPrimary">New request</Link>
                   <form action={logout} style={{ display: "inline" }}>
                     <button type="submit" className="btn" title="Sign out">Sign out</button>

@@ -58,14 +58,14 @@ type RequestStatus = {
 };
 
 export default async function CalendarPage() {
-  if (!isCalendarConfigured()) {
+  if (!(await isCalendarConfigured())) {
     return (
       <>
         <h1 className="h1">Family calendar</h1>
         <div className="card">
           <div className="empty">
-            No calendar is connected yet. Set <code>GOOGLE_CALENDAR_ICS_URL</code>{" "}
-            in Railway variables to enable this page.
+            No calendar connected yet. Go to <a href="/settings" style={{ textDecoration: "underline" }}>Settings</a>{" "}
+            to paste your Google Calendar iCal URL.
           </div>
         </div>
       </>

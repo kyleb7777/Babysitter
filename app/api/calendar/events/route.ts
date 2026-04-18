@@ -4,7 +4,7 @@ import { getEventsForDate, isCalendarConfigured } from "@/lib/calendar-feed";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  if (!isCalendarConfigured()) {
+  if (!(await isCalendarConfigured())) {
     return NextResponse.json({ configured: false, events: [] });
   }
   const date = req.nextUrl.searchParams.get("date");

@@ -43,6 +43,12 @@ model DismissedEvent {
   dismissedAt DateTime @default(now())
 }
 
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model Outreach {
   id          String        @id @default(cuid())
   requestId   String
