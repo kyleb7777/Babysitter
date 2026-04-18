@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   description: "Sequential SMS outreach for finding a babysitter",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "Babysitter", statusBarStyle: "default" },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
