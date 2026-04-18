@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { prisma } from "@/lib/db";
-import { classifyReply, normalizePhone, twilioClient, twilioFromNumber } from "@/lib/twilio";
+import { classifyReply, normalizePhone } from "@/lib/twilio";
 import { advanceRequest } from "@/lib/outreach";
-import { googleCalendarUrl } from "@/lib/calendar";
+import { notifyBookingConfirmed } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -102,38 +102,4 @@ export async function POST(req: NextRequest) {
   }
 
   return twiml(responseMessage);
-}
-
-async function notifyBookingConfirmed(params: {
-  sitterName: string;
-  sitterPhone: string;
-  request: { date: string; timeWindow: string; startTime: string | null; endTime: string | null; notes: string | null };
-}) {
-  const to = process.env.NOTIFY_SMS_NUMBER;
-  if (!to) return;
-  const { sitterName, sitterPhone, request } = params;
-  const tz = process.env.TIME_ZONE || "America/New_York";
-
-  let link: string | null = null;
-  if (request.startTime && request.endTime) {
-    link = googleCalendarUrl({
-      title: `Babysitter: ${sitterName}`,
-      details: `${sitterName} (${sitterPhone}) confirmed for ${request.timeWindow}.${request.notes ? `\n\n${request.notes}` : ""}`,
-      date: request.date,
-      startTime: request.startTime,
-      endTime: request.endTime,
-      timeZone: tz,
-    });
-  }
-
-  const body = link
-    ? `Babysitter confirmed! ${sitterName} on ${request.date} (${request.timeWindow}). Add to calendar: ${link}`
-    : `Babysitter confirmed! ${sitterName} on ${request.date} (${request.timeWindow}).`;
-
-  try {
-    const client = twilioClient();
-    await client.messages.create({ to, from: twilioFromNumber(), body });
-  } catch (err) {
-    console.error("notifyBookingConfirmed failed:", err);
-  }
 }

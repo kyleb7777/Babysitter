@@ -168,6 +168,8 @@ input[type="checkbox"] { accent-color: var(--primary); }
 .eventTitle { font-weight: 600; font-size: 15px; }
 .eventStatus { display: flex; align-items: center; }
 .eventActions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.assignSelect { padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: white; color: var(--fg); font-size: 14px; font-family: inherit; cursor: pointer; }
+.assignSelect:hover { background: var(--bg-subtle); }
 @media (max-width: 640px) {
   .eventRow { grid-template-columns: 1fr; gap: 8px; }
   .eventActions { justify-content: flex-start; }
