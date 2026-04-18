@@ -22,6 +22,8 @@ function loadIcal(): Promise<IcalModule> {
   return icalPromise;
 }
 
+import { getSetting, SETTING_KEYS } from "./settings";
+
 // Railpack scans source for `process.env.FOO` and requires matching build
 // secrets — even for runtime-only vars. Bracket access with a computed key
 // hides the reference from its static analyzer so builds don't fail when
@@ -32,17 +34,25 @@ function readEnv(key: string): string | undefined {
 }
 const ICS_URL_ENV = "GOOGLE_CALENDAR_ICS_URL";
 
-type CacheEntry = { fetchedAt: number; data: CalendarData };
+async function readIcsUrl(): Promise<string | null> {
+  const fromDb = await getSetting(SETTING_KEYS.calendarIcsUrl);
+  if (fromDb) return fromDb;
+  return readEnv(ICS_URL_ENV) ?? null;
+}
+
+type CacheEntry = { fetchedAt: number; url: string; data: CalendarData };
 const CACHE_TTL_MS = 60_000;
 let cache: CacheEntry | null = null;
 
 async function getIcsData(): Promise<CalendarData | null> {
-  const url = readEnv(ICS_URL_ENV);
+  const url = await readIcsUrl();
   if (!url) return null;
-  if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) return cache.data;
+  if (cache && cache.url === url && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
+    return cache.data;
+  }
   const ical = await loadIcal();
   const data = await ical.async.fromURL(url);
-  cache = { fetchedAt: Date.now(), data };
+  cache = { fetchedAt: Date.now(), url, data };
   return data;
 }
 
@@ -209,6 +219,6 @@ export async function getEventsInRange(
   return results;
 }
 
-export function isCalendarConfigured() {
-  return Boolean(readEnv(ICS_URL_ENV));
+export async function isCalendarConfigured(): Promise<boolean> {
+  return Boolean(await readIcsUrl());
 }
