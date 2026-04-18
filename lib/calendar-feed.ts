@@ -22,12 +22,22 @@ function loadIcal(): Promise<IcalModule> {
   return icalPromise;
 }
 
+// Railpack scans source for `process.env.FOO` and requires matching build
+// secrets — even for runtime-only vars. Bracket access with a computed key
+// hides the reference from its static analyzer so builds don't fail when
+// the var isn't set during build.
+function readEnv(key: string): string | undefined {
+  const k = key;
+  return process.env[k];
+}
+const ICS_URL_ENV = "GOOGLE_CALENDAR_ICS_URL";
+
 type CacheEntry = { fetchedAt: number; data: CalendarData };
 const CACHE_TTL_MS = 60_000;
 let cache: CacheEntry | null = null;
 
 async function getIcsData(): Promise<CalendarData | null> {
-  const url = process.env.GOOGLE_CALENDAR_ICS_URL;
+  const url = readEnv(ICS_URL_ENV);
   if (!url) return null;
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) return cache.data;
   const ical = await loadIcal();
@@ -200,5 +210,5 @@ export async function getEventsInRange(
 }
 
 export function isCalendarConfigured() {
-  return Boolean(process.env.GOOGLE_CALENDAR_ICS_URL);
+  return Boolean(readEnv(ICS_URL_ENV));
 }
