@@ -94,3 +94,8 @@ a { color: inherit; text-decoration: none; }
 .sitterPickHead { display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 4px 8px; font-weight: 600; }
 .sitterPickRow { display: grid; grid-template-columns: 70px 70px 1fr; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
 .sitterPickRow input[type="checkbox"] { justify-self: center; }
+.sitterPickHeadDraggable { grid-template-columns: 28px 70px 70px 1fr; }
+.sitterPickRowDraggable { grid-template-columns: 28px 70px 70px 1fr; touch-action: none; }
+.dragHandle { cursor: grab; border: none; background: transparent; font-size: 18px; line-height: 1; color: var(--muted); padding: 4px; border-radius: 4px; }
+.dragHandle:hover { background: var(--border); color: var(--fg); }
+.dragHandle:active { cursor: grabbing; }
