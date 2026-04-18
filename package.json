@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma migrate deploy && next build",
-    "start": "concurrently -n web,worker -c blue,green \"next start\" \"tsx scripts/worker.ts\"",
+    "build": "prisma generate && next build",
+    "start": "prisma migrate deploy && concurrently -n web,worker -c blue,green \"next start\" \"tsx scripts/worker.ts\"",
     "start:web": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
