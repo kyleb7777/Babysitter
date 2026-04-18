@@ -92,7 +92,7 @@ button, input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 .tabbarInner {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   max-width: 720px;
   margin: 0 auto;
   padding: 8px 8px;
@@ -293,38 +293,38 @@ button, input, textarea, select { font-family: inherit; font-size: inherit; }
   .availRow > .pill:last-child { grid-column: auto; grid-row: auto; font-size: 13px; }
 }
 
-/* Sitter pick grid for New Request. */
-.sitterPickGrid { display: grid; gap: 8px; }
-.sitterPickHead { display: none; }
-.sitterPickRow {
+/* Sitter picker rows on /requests/new. Each row has: a drag handle, sitter
+   info (name + detail + priority), and two labeled toggles for Include /
+   Ask now. Single-column on phones; two-column (drag + body) on desktop. */
+.pickList { display: grid; gap: 8px; }
+.pickRow {
   display: grid;
-  grid-template-columns: 28px 1fr;
-  grid-template-rows: auto auto;
-  gap: 8px;
-  align-items: center;
+  grid-template-columns: 36px 1fr;
+  gap: 10px;
+  align-items: start;
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-subtle);
+  touch-action: none;
 }
-.sitterPickRow > span {
-  grid-column: 1 / -1;
-  grid-row: 2;
+.pickRowBody { display: grid; gap: 6px; }
+.pickRowTitle { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 15px; }
+.pickRowPriority { font-size: 12px; font-weight: 500; }
+.pickRowDetail { font-size: 13px; line-height: 1.4; }
+.pickRowToggles { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+.pickToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
-  line-height: 1.4;
+  font-weight: 600;
+  color: var(--fg);
+  min-height: 36px;
+  cursor: pointer;
 }
-.sitterPickRow > input[type="checkbox"] {
-  grid-row: 1;
-  width: 22px;
-  height: 22px;
-  accent-color: var(--primary);
-  justify-self: start;
-}
-.sitterPickRow > input[type="checkbox"]:nth-of-type(1)::before {
-  content: "Include";
-}
-.sitterPickRow .checkLabel { font-size: 12px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.sitterPickRowDraggable { grid-template-columns: 28px 1fr; touch-action: none; }
+.pickToggle input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); margin: 0; }
+
 .dragHandle {
   cursor: grab;
   border: none;
@@ -332,25 +332,13 @@ button, input, textarea, select { font-family: inherit; font-size: inherit; }
   font-size: 22px;
   line-height: 1;
   color: var(--muted);
-  padding: 8px 4px;
+  padding: 8px 6px;
   border-radius: 6px;
   min-height: 40px;
-  min-width: 32px;
-  grid-row: 1;
-  justify-self: start;
+  align-self: start;
 }
 .dragHandle:hover { background: var(--border); color: var(--fg); }
 .dragHandle:active { cursor: grabbing; }
-@media (min-width: 560px) {
-  .sitterPickGrid { gap: 6px; }
-  .sitterPickHead { display: grid; grid-template-columns: 80px 80px 1fr; gap: 8px; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 4px 10px; font-weight: 600; }
-  .sitterPickRow { grid-template-columns: 80px 80px 1fr; grid-template-rows: auto; padding: 10px; }
-  .sitterPickRow > span { grid-column: auto; grid-row: auto; font-size: 13px; }
-  .sitterPickRow > input[type="checkbox"] { grid-row: auto; justify-self: center; }
-  .sitterPickHeadDraggable { grid-template-columns: 32px 80px 80px 1fr; }
-  .sitterPickRowDraggable { grid-template-columns: 32px 80px 80px 1fr; }
-  .dragHandle { grid-row: auto; justify-self: center; }
-}
 
 input[type="checkbox"] { accent-color: var(--primary); width: 20px; height: 20px; }
 

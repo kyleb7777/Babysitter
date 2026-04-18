@@ -44,7 +44,7 @@ function SortableRow({
     opacity: isDragging ? 0.6 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style} className="sitterPickRow sitterPickRowDraggable">
+    <div ref={setNodeRef} style={style} className="pickRow">
       <button
         type="button"
         className="dragHandle"
@@ -54,28 +54,35 @@ function SortableRow({
       >
         ≡
       </button>
-      <input
-        type="checkbox"
-        name="sitterIds"
-        value={row.id}
-        checked={row.include}
-        onChange={(e) => onToggle(row.id, "include", e.target.checked)}
-        aria-label={`Include ${row.name}`}
-      />
-      <input
-        type="checkbox"
-        name="immediateSitterIds"
-        value={row.id}
-        checked={row.immediate}
-        onChange={(e) => onToggle(row.id, "immediate", e.target.checked)}
-        aria-label={`Ask ${row.name} immediately`}
-      />
-      <span>
-        <strong>{row.name}</strong>{" "}
-        <span className="muted">
-          — {row.detail} · priority {row.priority}
-        </span>
-      </span>
+      <div className="pickRowBody">
+        <div className="pickRowTitle">
+          <strong>{row.name}</strong>
+          <span className="muted pickRowPriority">priority {row.priority}</span>
+        </div>
+        <div className="muted pickRowDetail">{row.detail}</div>
+        <div className="pickRowToggles">
+          <label className="pickToggle">
+            <input
+              type="checkbox"
+              name="sitterIds"
+              value={row.id}
+              checked={row.include}
+              onChange={(e) => onToggle(row.id, "include", e.target.checked)}
+            />
+            <span>Include</span>
+          </label>
+          <label className="pickToggle">
+            <input
+              type="checkbox"
+              name="immediateSitterIds"
+              value={row.id}
+              checked={row.immediate}
+              onChange={(e) => onToggle(row.id, "immediate", e.target.checked)}
+            />
+            <span>Ask now</span>
+          </label>
+        </div>
+      </div>
     </div>
   );
 }
@@ -106,13 +113,7 @@ export function SitterOrderList({ sitters }: { sitters: SitterRow[] }) {
   }
 
   return (
-    <div className="sitterPickGrid">
-      <div className="sitterPickHead sitterPickHeadDraggable">
-        <span />
-        <span>Include</span>
-        <span>Ask now</span>
-        <span>Sitter</span>
-      </div>
+    <div className="pickList">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

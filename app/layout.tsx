@@ -82,15 +82,6 @@ const tabs: TabDef[] = [
     ),
   },
   {
-    href: "/status",
-    label: "Status",
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M4 12h3l2-6 4 12 2-6h5" />
-      </svg>
-    ),
-  },
-  {
     href: "/settings",
     label: "Settings",
     icon: (
