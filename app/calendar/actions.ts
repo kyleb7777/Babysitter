@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { formatTimeWindow } from "@/lib/calendar";
@@ -96,5 +95,4 @@ export async function assignSitter(formData: FormData) {
 
   revalidatePath("/calendar");
   revalidatePath("/requests");
-  redirect(`/requests/${request.id}`);
 }
