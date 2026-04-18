@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { createRequest } from "../actions";
 import { formatWeekly } from "@/lib/availability";
+import { SitterOrderList, type SitterRow } from "./SitterOrderList";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,12 @@ export default async function NewRequestPage() {
   const sitters = await prisma.sitter.findMany({
     where: { active: true },
     orderBy: [{ priority: "desc" }, { name: "asc" }],
+  });
+  const rows: SitterRow[] = sitters.map((s) => {
+    const weekly = formatWeekly(s.weeklyAvailability);
+    const detail =
+      [weekly, s.availability].filter(Boolean).join(" · ") || "no availability set";
+    return { id: s.id, name: s.name, detail, priority: s.priority };
   });
 
   return (
@@ -60,44 +67,13 @@ export default async function NewRequestPage() {
               />
             </div>
             <div className="field">
-              <label>Sitters to ask (in priority order)</label>
-              <div className="sitterPickGrid">
-                <div className="sitterPickHead">
-                  <span>Include</span>
-                  <span>Ask now</span>
-                  <span>Sitter</span>
-                </div>
-                {sitters.map((s) => {
-                  const weekly = formatWeekly(s.weeklyAvailability);
-                  const detail = [weekly, s.availability].filter(Boolean).join(" · ") || "no availability set";
-                  return (
-                    <div key={s.id} className="sitterPickRow">
-                      <input
-                        type="checkbox"
-                        name="sitterIds"
-                        value={s.id}
-                        defaultChecked
-                        aria-label={`Include ${s.name}`}
-                      />
-                      <input
-                        type="checkbox"
-                        name="immediateSitterIds"
-                        value={s.id}
-                        aria-label={`Ask ${s.name} immediately`}
-                      />
-                      <span>
-                        <strong>{s.name}</strong>{" "}
-                        <span className="muted">
-                          — {detail} · priority {s.priority}
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              <label>Sitters to ask (drag ≡ to reorder)</label>
+              <SitterOrderList sitters={rows} />
               <div className="muted" style={{ fontSize: 12 }}>
-                Check <strong>Ask now</strong> on sitters you want to text
-                simultaneously. Unchecked sitters wait in the queue.
+                Default order follows sitter priority. Drag a row to change it
+                for this request only. Check <strong>Ask now</strong> on sitters
+                you want to text simultaneously; unchecked sitters wait in the
+                queue.
               </div>
             </div>
             <div className="row">
