@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authCookieName, verifySessionToken } from "./lib/auth";
 
 // Public paths — reachable without auth.
-const PUBLIC_PREFIXES = ["/login", "/api/twilio", "/api/cron"];
+const PUBLIC_PREFIXES = ["/login", "/api/twilio", "/api/cron", "/privacy", "/terms"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
