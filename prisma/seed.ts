@@ -88,6 +88,20 @@ const sitters: SeedSitter[] = [
     rate: null,
     priority: 4,
   },
+  {
+    name: "Jay Pack",
+    phone: "+12143569270",
+    availability: "",
+    rate: null,
+    priority: 5,
+  },
+  {
+    name: "Ruthie Pack",
+    phone: "+12146934624",
+    availability: "",
+    rate: null,
+    priority: 5,
+  },
 ];
 
 async function main() {
