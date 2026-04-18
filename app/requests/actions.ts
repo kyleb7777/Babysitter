@@ -15,6 +15,7 @@ const schema = z.object({
   notes: z.string().trim().optional().nullable(),
   sitterIds: z.array(z.string()).min(1, "Pick at least one sitter"),
   immediateSitterIds: z.array(z.string()).default([]),
+  calendarEventUid: z.string().trim().optional().nullable(),
 });
 
 export async function createRequest(formData: FormData) {
@@ -28,6 +29,7 @@ export async function createRequest(formData: FormData) {
     notes: formData.get("notes") || null,
     sitterIds,
     immediateSitterIds,
+    calendarEventUid: formData.get("calendarEventUid") || null,
   });
   const timeWindow = formatTimeWindow(parsed.startTime, parsed.endTime);
 
@@ -57,6 +59,7 @@ export async function createRequest(formData: FormData) {
       endTime: parsed.endTime,
       timeoutMinutes: parsed.timeoutMinutes,
       notes: parsed.notes ?? null,
+      calendarEventUid: parsed.calendarEventUid ?? null,
       outreaches: {
         create: ordered.map((s, i) => ({
           sitterId: s.id,

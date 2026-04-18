@@ -1,4 +1,10 @@
 export type CalendarEvent = {
+  /**
+   * Stable identifier for a single occurrence. For non-recurring events this
+   * matches the VEVENT's UID. For recurrences we append the occurrence's ISO
+   * start time so every instance is uniquely addressable from the DB.
+   */
+  uid: string;
   title: string;
   start: string; // ISO
   end: string;   // ISO
@@ -48,86 +54,147 @@ function sameLocalDay(d: Date, target: { y: number; m: number; d: number }) {
   );
 }
 
-/**
- * Return all events that overlap the given local calendar date (YYYY-MM-DD).
- * Expands weekly/monthly recurring events within a ±7-day window.
- */
-export async function getEventsForDate(dateString: string): Promise<CalendarEvent[]> {
+type ExpandedOccurrence = {
+  baseUid: string;
+  title: string;
+  location: string | null;
+  allDay: boolean;
+  start: Date;
+  end: Date;
+  isRecurring: boolean;
+};
+
+function buildOccurrenceUid(o: ExpandedOccurrence): string {
+  return o.isRecurring ? `${o.baseUid}@${o.start.toISOString()}` : o.baseUid;
+}
+
+async function collectOccurrences(
+  windowStart: Date,
+  windowEnd: Date,
+): Promise<ExpandedOccurrence[]> {
   const data = await getIcsData();
   if (!data) return [];
+  const results: ExpandedOccurrence[] = [];
+
+  for (const key of Object.keys(data)) {
+    const component = data[key];
+    if (!component || component.type !== "VEVENT") continue;
+    const e = component as unknown as {
+      uid?: string;
+      start?: Date;
+      end?: Date;
+      summary?: unknown;
+      location?: unknown;
+      datetype?: string;
+      rrule?: { between: (a: Date, b: Date, inc: boolean) => Date[] };
+      recurrences?: Record<string, { start?: Date; end?: Date }>;
+    };
+    const baseStart = e.start;
+    const baseEnd = e.end ?? baseStart;
+    if (!baseStart || !baseEnd) continue;
+    const baseUid = e.uid || `${toPlainString(e.summary) ?? "event"}@${baseStart.toISOString()}`;
+    const title = toPlainString(e.summary) ?? "(untitled)";
+    const location = toPlainString(e.location);
+    const allDay = e.datetype === "date";
+
+    if (e.rrule && typeof e.rrule.between === "function") {
+      const between = e.rrule.between(windowStart, windowEnd, true);
+      const durationMs = baseEnd.getTime() - baseStart.getTime();
+      for (const instStart of between) {
+        results.push({
+          baseUid,
+          title,
+          location,
+          allDay,
+          start: instStart,
+          end: new Date(instStart.getTime() + durationMs),
+          isRecurring: true,
+        });
+      }
+      if (e.recurrences) {
+        for (const recurKey of Object.keys(e.recurrences)) {
+          const override = e.recurrences[recurKey];
+          const os = override?.start;
+          const oe = override?.end ?? os;
+          if (os && oe && os >= windowStart && os <= windowEnd) {
+            results.push({
+              baseUid,
+              title,
+              location,
+              allDay,
+              start: os,
+              end: oe,
+              isRecurring: true,
+            });
+          }
+        }
+      }
+    } else if (baseEnd >= windowStart && baseStart <= windowEnd) {
+      results.push({
+        baseUid,
+        title,
+        location,
+        allDay,
+        start: baseStart,
+        end: baseEnd,
+        isRecurring: false,
+      });
+    }
+  }
+
+  return results;
+}
+
+function toCalendarEvent(o: ExpandedOccurrence): CalendarEvent {
+  return {
+    uid: buildOccurrenceUid(o),
+    title: o.title,
+    start: o.start.toISOString(),
+    end: o.end.toISOString(),
+    allDay: o.allDay,
+    location: o.location,
+  };
+}
+
+/**
+ * All events that overlap the given local calendar date (YYYY-MM-DD).
+ */
+export async function getEventsForDate(dateString: string): Promise<CalendarEvent[]> {
   const [y, m, d] = dateString.split("-").map((n) => parseInt(n, 10));
   const target = { y, m: m - 1, d };
   const dayStart = new Date(y, m - 1, d, 0, 0, 0, 0);
   const dayEnd = new Date(y, m - 1, d, 23, 59, 59, 999);
 
+  const bufferStart = new Date(dayStart.getTime() - 7 * 86400_000);
+  const bufferEnd = new Date(dayEnd.getTime() + 7 * 86400_000);
+  const occurrences = await collectOccurrences(bufferStart, bufferEnd);
+
   const results: CalendarEvent[] = [];
-  for (const key of Object.keys(data)) {
-    const component = data[key];
-    if (!component || component.type !== "VEVENT") continue;
-    const e = component as unknown as {
-      start?: Date;
-      end?: Date;
-      summary?: unknown;
-      location?: unknown;
-    };
-    const baseStart = e.start as Date | undefined;
-    const baseEnd = (e.end as Date | undefined) ?? baseStart;
-    if (!baseStart || !baseEnd) continue;
-
-    const title = toPlainString(e.summary) ?? "(untitled)";
-    const location = toPlainString(e.location);
-    const datetype = (e as unknown as { datetype?: string }).datetype;
-    const allDay = datetype === "date";
-
-    const occurrences: { start: Date; end: Date }[] = [];
-    const rrule = (e as unknown as { rrule?: { between: (a: Date, b: Date, inc: boolean) => Date[] } }).rrule;
-    if (rrule && typeof rrule.between === "function") {
-      const rangeStart = new Date(dayStart.getTime() - 7 * 86400_000);
-      const rangeEnd = new Date(dayEnd.getTime() + 7 * 86400_000);
-      const between = rrule.between(rangeStart, rangeEnd, true);
-      const originalMs = baseEnd.getTime() - baseStart.getTime();
-      for (const instStart of between) {
-        occurrences.push({
-          start: instStart,
-          end: new Date(instStart.getTime() + originalMs),
-        });
-      }
-      const recurrences = (e as unknown as { recurrences?: Record<string, { start?: Date; end?: Date }> }).recurrences;
-      if (recurrences) {
-        for (const recurKey of Object.keys(recurrences)) {
-          const override = recurrences[recurKey];
-          const os = override?.start as Date | undefined;
-          const oe = (override?.end as Date | undefined) ?? os;
-          if (os && oe) occurrences.push({ start: os, end: oe });
-        }
-      }
-    } else {
-      occurrences.push({ start: baseStart, end: baseEnd });
-    }
-
-    for (const { start, end } of occurrences) {
-      if (allDay) {
-        if (sameLocalDay(start, target)) {
-          results.push({
-            title,
-            start: start.toISOString(),
-            end: end.toISOString(),
-            allDay: true,
-            location,
-          });
-        }
-      } else if (start <= dayEnd && end >= dayStart) {
-        results.push({
-          title,
-          start: start.toISOString(),
-          end: end.toISOString(),
-          allDay: false,
-          location,
-        });
-      }
+  for (const o of occurrences) {
+    if (o.allDay) {
+      if (sameLocalDay(o.start, target)) results.push(toCalendarEvent(o));
+    } else if (o.start <= dayEnd && o.end >= dayStart) {
+      results.push(toCalendarEvent(o));
     }
   }
+  results.sort((a, b) => a.start.localeCompare(b.start));
+  return results;
+}
 
+/**
+ * All events whose start falls between the two dates (inclusive).
+ */
+export async function getEventsInRange(
+  startDate: Date,
+  endDate: Date,
+): Promise<CalendarEvent[]> {
+  const occurrences = await collectOccurrences(startDate, endDate);
+  const results: CalendarEvent[] = [];
+  for (const o of occurrences) {
+    if (o.start >= startDate && o.start <= endDate) {
+      results.push(toCalendarEvent(o));
+    }
+  }
   results.sort((a, b) => a.start.localeCompare(b.start));
   return results;
 }

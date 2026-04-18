@@ -21,18 +21,26 @@ model Sitter {
 }
 
 model SitterRequest {
-  id          String     @id @default(cuid())
-  date        String     // ISO date e.g. 2026-05-02
-  timeWindow     String     // display label, e.g. "6-10pm" (computed from start/end)
-  startTime      String?    // HH:MM local time, e.g. "18:00"
-  endTime        String?    // HH:MM local time, e.g. "22:00"
-  timeoutMinutes Int        @default(30) // minutes to wait for a reply before moving on
-  notes          String?
-  status         String     @default("PENDING") // PENDING | FILLED | EXHAUSTED | CANCELLED
-  filledById  String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  outreaches  Outreach[]
+  id               String     @id @default(cuid())
+  date             String     // ISO date e.g. 2026-05-02
+  timeWindow       String     // display label, e.g. "6-10pm" (computed from start/end)
+  startTime        String?    // HH:MM local time, e.g. "18:00"
+  endTime          String?    // HH:MM local time, e.g. "22:00"
+  timeoutMinutes   Int        @default(30) // minutes to wait for a reply before moving on
+  notes            String?
+  calendarEventUid String?    // links back to a Google Calendar event (if created from /calendar)
+  status           String     @default("PENDING") // PENDING | FILLED | EXHAUSTED | CANCELLED
+  filledById       String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  outreaches       Outreach[]
+
+  @@index([calendarEventUid])
+}
+
+model DismissedEvent {
+  eventUid    String   @id
+  dismissedAt DateTime @default(now())
 }
 
 model Outreach {

@@ -82,6 +82,15 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
         {r.notes && (
           <p className="muted" style={{ marginTop: 12 }}>Notes: {r.notes}</p>
         )}
+        {r.calendarEventUid && (
+          <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>
+            Linked to a{" "}
+            <Link href="/calendar" style={{ textDecoration: "underline" }}>
+              family calendar
+            </Link>{" "}
+            event.
+          </p>
+        )}
       </div>
 
       <div className="card" style={{ padding: 0 }}>
