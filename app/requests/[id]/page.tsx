@@ -18,69 +18,57 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
   if (!r) notFound();
 
   const inFlight = r.outreaches.filter((o) => o.status === "SENT");
-  const current = inFlight[0];
 
   return (
     <>
-      <div className="row" style={{ marginBottom: 20 }}>
-        <h1 className="h1" style={{ margin: 0 }}>Request</h1>
-        <div className="spacer" />
-        <Link href="/requests" className="btn">Back</Link>
+      <div className="pageHead">
+        <h1 className="h1">Request</h1>
+        <Link href="/requests" className="btn btnGhost btnSmall">
+          ← Back
+        </Link>
       </div>
 
       <div className="card">
-        <div className="row" style={{ gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <div className="muted">Date</div>
-            <div style={{ fontWeight: 600 }}>{r.date}</div>
+        <div className="kvGrid">
+          <div className="kv">
+            <span className="muted">Date</span>
+            <span className="kvValue">{r.date}</span>
           </div>
-          <div>
-            <div className="muted">Time</div>
-            <div style={{ fontWeight: 600 }}>{r.timeWindow}</div>
+          <div className="kv">
+            <span className="muted">Time</span>
+            <span className="kvValue">{r.timeWindow}</span>
           </div>
-          <div>
-            <div className="muted">Wait per sitter</div>
-            <div style={{ fontWeight: 600 }}>{r.timeoutMinutes} min</div>
+          <div className="kv">
+            <span className="muted">Wait</span>
+            <span className="kvValue">{r.timeoutMinutes} min</span>
           </div>
-          <div>
-            <div className="muted">Status</div>
-            <span className={`badge badge-${r.status}`}>{r.status}</span>
+          <div className="kv">
+            <span className="muted">Status</span>
+            <span>
+              <span className={`badge badge-${r.status}`}>{r.status}</span>
+            </span>
           </div>
-          <div className="spacer" />
-          {r.status === "PENDING" && (
-            <form action={retryRequest}>
-              <input type="hidden" name="id" value={r.id} />
-              <button className="btn" type="submit" title="Send the next queued text">
-                Send next
-              </button>
-            </form>
-          )}
-          {r.status === "PENDING" && (
-            <form action={cancelRequest}>
-              <input type="hidden" name="id" value={r.id} />
-              <button className="btn btnDanger" type="submit">Cancel request</button>
-            </form>
-          )}
-          <form action={deleteRequest}>
-            <input type="hidden" name="id" value={r.id} />
-            <button className="btn btnDanger" type="submit">Delete</button>
-          </form>
         </div>
+
         {inFlight.length > 0 && r.status === "PENDING" && (
-          <p className="muted" style={{ marginTop: 12 }}>
+          <p className="muted" style={{ marginTop: 14, fontSize: 13 }}>
             Waiting on{" "}
             <strong>{inFlight.map((o) => o.sitter.name).join(", ")}</strong>
             {inFlight[0].sentAt && (
-              <> — next asked at{" "}
+              <>
+                {" "}— next asked at{" "}
                 {new Date(
                   inFlight[0].sentAt.getTime() + r.timeoutMinutes * 60 * 1000,
-                ).toLocaleTimeString()} if no reply</>
+                ).toLocaleTimeString()} if no reply
+              </>
             )}
             .
           </p>
         )}
         {r.notes && (
-          <p className="muted" style={{ marginTop: 12 }}>Notes: {r.notes}</p>
+          <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>
+            Notes: {r.notes}
+          </p>
         )}
         {r.calendarEventUid && (
           <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>
@@ -91,65 +79,91 @@ export default async function RequestDetailPage({ params }: { params: { id: stri
             event.
           </p>
         )}
+
+        <div className="listItemActions" style={{ marginTop: 16 }}>
+          {r.status === "PENDING" && (
+            <form action={retryRequest}>
+              <input type="hidden" name="id" value={r.id} />
+              <button className="btn btnSmall" type="submit">
+                Send next
+              </button>
+            </form>
+          )}
+          {r.status === "PENDING" && (
+            <form action={cancelRequest}>
+              <input type="hidden" name="id" value={r.id} />
+              <button className="btn btnDanger btnSmall" type="submit">
+                Cancel
+              </button>
+            </form>
+          )}
+          <form action={deleteRequest}>
+            <input type="hidden" name="id" value={r.id} />
+            <button className="btn btnDanger btnSmall" type="submit">
+              Delete
+            </button>
+          </form>
+        </div>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Sitter</th>
-              <th>Status</th>
-              <th>Sent</th>
-              <th>Reply</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {r.outreaches.map((o) => (
-              <tr key={o.id}>
-                <td>{o.order + 1}</td>
-                <td>
-                  <div style={{ fontWeight: 500 }}>{o.sitter.name}</div>
-                  <div className="muted" style={{ fontSize: 12 }}>{o.sitter.phone}</div>
-                </td>
-                <td>
-                  <span className={`badge badge-${o.status}`}>{o.status}</span>
-                </td>
-                <td className="muted">{o.sentAt ? formatWhen(o.sentAt) : "—"}</td>
-                <td>
-                  {o.replyBody ? (
-                    <span>
-                      “{o.replyBody}”
-                      <div className="muted" style={{ fontSize: 12 }}>
-                        {o.repliedAt ? formatWhen(o.repliedAt) : ""}
-                      </div>
-                    </span>
-                  ) : o.errorText ? (
-                    <span className="muted">{o.errorText}</span>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td style={{ textAlign: "right" }}>
-                  {current?.id === o.id && r.status === "PENDING" && (
-                    <form action={skipCurrent} style={{ display: "inline" }}>
-                      <input type="hidden" name="requestId" value={r.id} />
-                      <input type="hidden" name="outreachId" value={o.id} />
-                      <button className="btn" type="submit">Skip</button>
-                    </form>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <h2 className="h2" style={{ marginTop: 24, marginBottom: 10, paddingLeft: 4 }}>
+        Outreach ({r.outreaches.length})
+      </h2>
+
+      {r.outreaches.map((o) => {
+        const isCurrent = inFlight.some((f) => f.id === o.id);
+        return (
+          <div key={o.id} className="listItem">
+            <div className="listItemHead">
+              <div>
+                <div className="listItemTitle">
+                  <span className="muted" style={{ fontSize: 13, fontWeight: 500, marginRight: 6 }}>
+                    #{o.order + 1}
+                  </span>
+                  {o.sitter.name}
+                </div>
+                <div className="listItemSub">{o.sitter.phone}</div>
+              </div>
+              <span className={`badge badge-${o.status}`}>{o.status}</span>
+            </div>
+            {o.sentAt && (
+              <div className="listItemSub" style={{ marginTop: 6 }}>
+                Sent {formatWhen(o.sentAt)}
+              </div>
+            )}
+            {o.replyBody && (
+              <div className="listItemSub" style={{ marginTop: 6, fontStyle: "italic" }}>
+                &ldquo;{o.replyBody}&rdquo;
+                {o.repliedAt && (
+                  <span style={{ fontStyle: "normal", marginLeft: 6 }}>
+                    · {formatWhen(o.repliedAt)}
+                  </span>
+                )}
+              </div>
+            )}
+            {o.errorText && (
+              <div className="listItemSub" style={{ marginTop: 6, color: "var(--red)" }}>
+                {o.errorText}
+              </div>
+            )}
+            {isCurrent && r.status === "PENDING" && (
+              <div className="listItemActions">
+                <form action={skipCurrent}>
+                  <input type="hidden" name="requestId" value={r.id} />
+                  <input type="hidden" name="outreachId" value={o.id} />
+                  <button className="btn btnSmall" type="submit">
+                    Skip
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </>
   );
 }
 
 function formatWhen(d: Date) {
-  const date = new Date(d);
-  return date.toLocaleString();
+  return new Date(d).toLocaleString();
 }

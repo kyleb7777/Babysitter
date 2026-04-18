@@ -260,60 +260,51 @@ export default async function StatusPage() {
         )}
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
-        <div style={{ padding: "20px 24px 8px" }}>
-          <h2 className="h2" style={{ margin: 0 }}>Recent messages (last 10)</h2>
-        </div>
+      <div className="card">
+        <h2 className="h2">Recent messages (last 10)</h2>
         {s.messages && s.messages.length > 0 ? (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>When</th>
-                <th>To</th>
-                <th>Status</th>
-                <th>Error</th>
-                <th>Body</th>
-              </tr>
-            </thead>
-            <tbody>
-              {s.messages.map((m) => (
-                <tr key={m.sid}>
-                  <td className="muted" style={{ whiteSpace: "nowrap" }}>
-                    {formatWhen(m.dateCreated)}
-                  </td>
-                  <td style={{ whiteSpace: "nowrap" }}>{m.to}</td>
-                  <td>
-                    <span className={`badge badge-${statusBadge(m.status)}`}>
-                      {m.status}
-                    </span>
-                  </td>
-                  <td className="muted" style={{ fontSize: 12 }}>
-                    {m.errorCode ? (
-                      <>
-                        <strong>{m.errorCode}</strong>
-                        {m.errorMessage ? ` — ${m.errorMessage}` : ""}
-                      </>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td
-                    className="muted"
-                    style={{
-                      fontSize: 12,
-                      maxWidth: 320,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                    title={m.body ?? ""}
-                  >
+          <div style={{ display: "grid", gap: 10 }}>
+            {s.messages.map((m) => (
+              <div
+                key={m.sid}
+                style={{
+                  padding: 12,
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "var(--bg-subtle)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    marginBottom: 6,
+                  }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{m.to}</div>
+                  <span className={`badge badge-${statusBadge(m.status)}`}>
+                    {m.status}
+                  </span>
+                </div>
+                <div className="muted" style={{ fontSize: 12 }}>
+                  {formatWhen(m.dateCreated)}
+                </div>
+                {m.errorCode && (
+                  <div className="muted" style={{ fontSize: 12, marginTop: 4, color: "var(--red)" }}>
+                    <strong>{m.errorCode}</strong>
+                    {m.errorMessage ? ` — ${m.errorMessage}` : ""}
+                  </div>
+                )}
+                {m.body && (
+                  <div className="muted" style={{ fontSize: 13, marginTop: 6, lineHeight: 1.4 }}>
                     {m.body}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="empty">No messages sent yet.</div>
         )}
