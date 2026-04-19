@@ -106,9 +106,14 @@ export default async function CalendarPage() {
   }
 
   const now = new Date();
-  const windowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-  const windowEnd = new Date(windowStart);
-  windowEnd.setDate(windowEnd.getDate() + DAYS_AHEAD);
+  // "Today" in the configured TIME_ZONE as YYYY-MM-DD. We use this for grouping
+  // so the calendar never shows yesterday when the server TZ (UTC on Railway)
+  // has already rolled over but the user's timezone hasn't.
+  const todayKey = toDateInput(now);
+  // Widen the fetch window slightly so we don't miss events that start late
+  // today in TIME_ZONE but before midnight in the server's TZ.
+  const windowStart = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const windowEnd = new Date(now.getTime() + DAYS_AHEAD * 24 * 60 * 60 * 1000);
 
   let events: CalendarEvent[] = [];
   let fetchError: string | null = null;
@@ -149,10 +154,13 @@ export default async function CalendarPage() {
   }
   const dismissedSet = new Set(dismissed.map((d) => d.eventUid));
 
-  // Group events by local date for readable output.
+  // Group events by local date for readable output. Drop any dates before
+  // today in the configured TIME_ZONE — string comparison on YYYY-MM-DD
+  // works because they're ISO-ordered.
   const groups = new Map<string, CalendarEvent[]>();
   for (const ev of events) {
     const key = toDateInput(new Date(ev.start));
+    if (key < todayKey) continue;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(ev);
   }
