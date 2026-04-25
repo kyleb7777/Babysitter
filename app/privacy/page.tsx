@@ -41,23 +41,46 @@ export default function PrivacyPage() {
           profiling.
         </p>
 
+        <h2 className="h2" style={{ marginTop: 20 }}>SMS messaging program</h2>
+        <p>
+          By providing a mobile phone number to the operator and consenting to
+          receive messages, a recipient is opted in to a transactional SMS
+          program used to coordinate babysitting availability.
+        </p>
+        <ul>
+          <li>
+            <strong>Message frequency</strong> varies and depends on how often
+            the operator needs a sitter — typically 0&ndash;4 messages per
+            month per recipient.
+          </li>
+          <li>
+            <strong>Message and data rates may apply</strong> based on the
+            recipient&rsquo;s mobile carrier plan.
+          </li>
+          <li>
+            Reply <strong>STOP</strong> at any time to be removed from further
+            messages. Reply <strong>HELP</strong> for assistance. Carriers
+            honor STOP automatically.
+          </li>
+          <li>
+            No mobile information (phone numbers or message content) will be
+            shared with third parties or affiliates for marketing or
+            promotional purposes. Information is shared only with the
+            subprocessors listed below as strictly required to deliver the
+            messages.
+          </li>
+        </ul>
+
         <h2 className="h2" style={{ marginTop: 20 }}>Sharing</h2>
         <p>
           Personal information is not sold, rented, or shared with third
-          parties. The only third parties involved are infrastructure
-          providers required to operate the app:
+          parties for marketing. The only third parties involved are
+          infrastructure providers required to operate the app:
         </p>
         <ul>
           <li><strong>Twilio</strong> — delivers the SMS messages.</li>
           <li><strong>Railway</strong> — hosts the app and its database.</li>
         </ul>
-
-        <h2 className="h2" style={{ marginTop: 20 }}>Opting out</h2>
-        <p>
-          Any recipient can reply <strong>STOP</strong> at any time to be
-          removed from further messages, or <strong>HELP</strong> to request
-          assistance. Carriers honor STOP automatically.
-        </p>
 
         <h2 className="h2" style={{ marginTop: 20 }}>Retention and deletion</h2>
         <p>

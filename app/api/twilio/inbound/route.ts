@@ -42,6 +42,14 @@ export async function POST(req: NextRequest) {
   const body = String(params.Body ?? "").trim();
   if (!from || !body) return twiml();
 
+  // Carrier-required keyword: HELP must always return a help message, even if
+  // the sender isn't a known sitter. STOP is auto-handled by Twilio.
+  if (/^\s*help\b/i.test(body)) {
+    return twiml(
+      "Babysitter scheduling app from Kyle. Reply YES, NO, or MAYBE to a sitting request. Reply STOP to opt out. Msg & data rates may apply."
+    );
+  }
+
   const sitter = await prisma.sitter.findUnique({ where: { phone: from } });
   if (!sitter) {
     return twiml("Sorry, we don't have your number on file.");

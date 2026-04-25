@@ -14,7 +14,8 @@ export function composeRequestMessage(params: {
     `Any chance you're free to babysit ${friendly} (${timeWindow})?`,
   ];
   if (notes) lines.push(notes);
-  lines.push(`Reply YES, NO, or MAYBE. Thanks!`);
+  lines.push(`Reply YES, NO, or MAYBE.`);
+  lines.push(`Reply STOP to opt out, HELP for help. Msg & data rates may apply.`);
   return lines.join(" ");
 }
 
